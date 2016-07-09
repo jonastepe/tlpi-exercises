@@ -22,11 +22,11 @@ int main(int argc, char *argv[])
 	no_append = true;
 
     if (!no_append)
-	oflag |= O_APPEND;
+        oflag |= O_APPEND;
     
     fd = open(argv[1], oflag, mode);
     if (fd == -1)
-	errExit("open");
+        errExit("open");
 
     for (counter = 0; counter < num_bytes; counter++) {
 	if (no_append)
