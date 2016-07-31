@@ -74,7 +74,7 @@ char **search_environ(const char *name)
 {
     char **ep;
 
-    for (ep = environ; ep != NULL; ep++)
+    for (ep = environ; *ep != NULL; ep++)
         if (strstr(*ep, name) != NULL)
             break;
 
@@ -83,7 +83,7 @@ char **search_environ(const char *name)
 
 int unsetenv_p(const char *name)
 {
-    char **envar;
+    char **envar, **last, **ep;
     
     if (NAME_INVALID(name)) {
         errno = EINVAL;
@@ -91,10 +91,30 @@ int unsetenv_p(const char *name)
     }
 
     envar = search_environ(name);
-    if (envar != NULL)
-        printf("%s\n", *envar);
+    while (*envar != NULL) {
+	for (ep = environ; *ep != NULL; ep++)
+	    last = ep;
+	
+	// overwrite the environment variable with the last in
+	// the array and null out the last environment variable
+	*envar = *last;
+	*last = NULL;
+
+	envar = search_environ(name);
+    }
     
     return 0;
+}
+
+void print_environ()
+{
+    char **ep;
+    size_t num_vars;
+
+    for (ep = environ, num_vars = 0; *ep != NULL; ep++, num_vars++)
+        printf("%s\n", *ep);
+
+    printf("Total number of envars is %ld\n", (long) num_vars);
 }
 
 void test_unsetenv_p()
@@ -118,6 +138,8 @@ void test_unsetenv_p()
     assert(getenv("REMOVE_THIS") != NULL);
 
     ret = unsetenv_p("REMOVE_THIS");
+    assert(ret == 0);
+    assert(getenv("REMOVE_THIS") == NULL);
 }
 
 int main()
